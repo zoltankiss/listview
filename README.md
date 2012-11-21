@@ -15,9 +15,6 @@ The best way to see what ListView does is view the app it was designed for, http
 ## Basic Usage in Rails
 
 
-Event.all
-
-
 ### example_controller.rb
 
 ```
