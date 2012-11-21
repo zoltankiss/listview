@@ -111,4 +111,56 @@ describe ListView do
     end
   end
 
+  describe "organization events by days" do
+    let(:events) do
+      [
+        EventStub.new(right_now + (1.0/60)),
+        EventStub.new(right_now + 1),
+        EventStub.new(right_now - 1),
+        EventStub.new(right_now + 2),
+        EventStub.new(right_now - 2),
+        EventStub.new(right_now + 5),
+        EventStub.new(right_now - 5),
+        EventStub.new(right_now + 7),
+        EventStub.new(right_now - 7),
+        EventStub.new(right_now + 10),
+      ]
+    end
+
+    it do
+      ListView.organization_events_by_day(
+        events: events,
+        today: right_now,
+        page: 0,
+        events_per_page: 2,
+        date_format: "%B, %d").should == [
+        {
+          date: "Today",
+          events: [EventStub.new(right_now + (1.0/60))]
+        },
+        {
+          date: (right_now + 1).strftime("%B, %d"),
+          events: [EventStub.new(right_now + 1)]
+        },
+      ]
+    end
+
+    it do
+      ListView.organization_events_by_day(
+        events: events,
+        today: right_now,
+        page: -1,
+        events_per_page: 2,
+        date_format: "%B, %d").should == [
+        {
+          date: (right_now - 2).strftime("%B, %d"),
+          events: [EventStub.new(right_now - 2)]
+        },
+        {
+          date: (right_now - 1).strftime("%B, %d"),
+          events: [EventStub.new(right_now - 1)]
+        },
+      ]
+    end
+  end
 end
