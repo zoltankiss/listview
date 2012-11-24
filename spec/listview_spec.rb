@@ -127,13 +127,27 @@ describe ListView do
       ]
     end
 
+    #correct order:
+    #events = [
+      #EventStub.new(right_now - 7),
+      #EventStub.new(right_now - 5),
+      #EventStub.new(right_now - 2),
+      #EventStub.new(right_now - 1),
+      #EventStub.new(right_now + (1.0/60)),
+      #EventStub.new(right_now + 1),
+      #EventStub.new(right_now + 2),
+      #EventStub.new(right_now + 5),
+      #EventStub.new(right_now + 7),
+      #EventStub.new(right_now + 10),
+    #]
+
     it do
       ListView.organization_events_by_day(
         events: events,
         today: right_now,
         page: 0,
         events_per_page: 2,
-        date_format: "%B, %d").should == [
+        date_format: "%B, %d")[:events].should == [
         {
           date: "Today",
           events: [EventStub.new(right_now + (1.0/60))]
@@ -151,7 +165,7 @@ describe ListView do
         today: right_now,
         page: -1,
         events_per_page: 2,
-        date_format: "%B, %d").should == [
+        date_format: "%B, %d")[:events].should == [
         {
           date: (right_now - 2).strftime("%B, %d"),
           events: [EventStub.new(right_now - 2)]
@@ -162,5 +176,63 @@ describe ListView do
         },
       ]
     end
+
+    #page: 0, events_per_page: 2
+    it do
+      ListView.organization_events_by_day(
+              events: events,
+              today: right_now,
+              page: 0,
+              events_per_page: 2,
+              date_format: "%B, %d")[:leftmost_page].should == -2
+    end
+
+    it do
+      ListView.organization_events_by_day(
+              events: events,
+              today: right_now,
+              page: 0,
+              events_per_page: 2,
+              date_format: "%B, %d")[:rightmost_page].should == 2
+    end
+
+    #page: 2, events_per_page: 2
+    it do
+      ListView.organization_events_by_day(
+              events: events,
+              today: right_now,
+              page: 2,
+              events_per_page: 2,
+              date_format: "%B, %d")[:leftmost_page].should == -4
+    end
+
+    it do
+      ListView.organization_events_by_day(
+              events: events,
+              today: right_now,
+              page: 2,
+              events_per_page: 2,
+              date_format: "%B, %d")[:rightmost_page].should == 0
+    end
+
+    #page: -2, events_per_page: 2
+    it do
+      ListView.organization_events_by_day(
+              events: events,
+              today: right_now,
+              page: -2,
+              events_per_page: 2,
+              date_format: "%B, %d")[:leftmost_page].should == 0
+    end
+
+    it do
+      ListView.organization_events_by_day(
+              events: events,
+              today: right_now,
+              page: -2,
+              events_per_page: 2,
+              date_format: "%B, %d")[:rightmost_page].should == 4
+    end
+
   end
 end
