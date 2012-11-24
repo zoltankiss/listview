@@ -8,5 +8,5 @@ Gem::Specification.new do |s|
   s.email       = 'kissx012@umn.edu'
   s.files       = ["lib/listview.rb"]
   s.homepage    =
-    'http://rubygems.org/gems/listview'
+    'https://github.com/zoltankiss/listview'
 end
