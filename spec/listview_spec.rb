@@ -3,8 +3,9 @@ require 'date'
 
 class EventStub
   attr_accessor :date
-  def initialize date
+  def initialize date, name
     @date = date
+    @name = name
   end
   def == other_event
     @date == other_event.date
@@ -12,227 +13,131 @@ class EventStub
 end
 
 describe ListView do
+
   let(:right_now) { DateTime.now }
-  let(:starting_date) { right_now + (1.0/60) }
 
-  describe "a few events" do
-    let(:events) do
-      [
-        EventStub.new(right_now + (1.0/60)),
-        EventStub.new(right_now + 1),
-        EventStub.new(right_now - 1),
-        EventStub.new(right_now + 2),
-        EventStub.new(right_now - 2),
-        EventStub.new(right_now + 5),
-        EventStub.new(right_now - 5),
-        EventStub.new(right_now + 7),
-        EventStub.new(right_now - 7),
-        EventStub.new(right_now + 10),
-      ]
-    end
+  let(:first_event) { EventStub.new(right_now - 8, 'first_event') }
+  let(:second_event) { EventStub.new(right_now - 7, 'second_event') }
+  let(:third_event) { EventStub.new(right_now - 1, 'third_event') }
+  let(:fourth_and_current_event) { EventStub.new(right_now + (1.0/60), 'fourth_and_current_event') }
+  let(:fifth_event) { EventStub.new(right_now + 1, 'fifth_event') }
+  let(:sixth_event) { EventStub.new(right_now + 3, 'sixth_event') }
+  let(:seventh_event) { EventStub.new(right_now + 4, 'seventh_event') }
 
-    it do
-      ListView.get_events(events: events, today: right_now, page: 0, events_per_page: 2).should == [
-        EventStub.new(right_now + (1.0/60)),
-        EventStub.new(right_now + 1),
-      ]
-    end
+  let(:events) do
+    [
+      fifth_event,
+      seventh_event,
+      first_event,
+      third_event,
+      fourth_and_current_event,
+      sixth_event,
+      second_event,
+    ]
+  end
 
-    it do
-      ListView.get_events(events: events, today: right_now, page: -1, events_per_page: 2).should == [
-        EventStub.new(right_now - 2),
-        EventStub.new(right_now - 1),
-      ]
-    end
+  describe 'get_event_closed_to_today method' do
+    it { ListView.get_event_closed_to_today(events).should == 3 }
+  end
 
-    it do
-      ListView.get_events(events: events, today: right_now, page: -1, events_per_page: 3).should == [
-        EventStub.new(right_now - 5),
-        EventStub.new(right_now - 2),
-        EventStub.new(right_now - 1),
-      ]
-    end
-
-    it do
-      ListView.get_events(events: events, today: right_now, page: 2, events_per_page: 2).should == [
-        EventStub.new(right_now + 7),
-        EventStub.new(right_now + 10),
-      ]
+  describe 'get_events method' do
+    describe '2 events per page' do
+      it 'first page' do
+        ListView.get_events(events: events, today: right_now, page: 0, events_per_page: 2).should == [
+          fourth_and_current_event,
+          fifth_event,
+        ]
+      end
+  
+      it 'second page' do
+        ListView.get_events(events: events, today: right_now, page: 1, events_per_page: 2).should == [
+          sixth_event,
+          seventh_event,
+        ]
+      end
+  
+      it "third page (shouldn't exist)" do
+        ListView.get_events(events: events, today: right_now, page: 2, events_per_page: 2).should == []
+      end
+  
+      it 'negative first page' do
+        ListView.get_events(events: events, today: right_now, page: -1, events_per_page: 2).should == [
+          second_event,
+          third_event,
+        ]
+      end
+  
+      it 'negative second page' do
+        ListView.get_events(events: events, today: right_now, page: -2, events_per_page: 2).should == [
+          first_event,
+        ]
+      end
+  
+      it "negative third page (shouldn't exist)" do
+        ListView.get_events(events: events, today: right_now, page: -3, events_per_page: 2).should == []
+      end
     end
   end
 
 
-  describe "many events" do
-    let(:events) do
-      starting_date = right_now + (1.0/60) - 50
-      ([0]*100).each_with_index.map do |item, k|
-        EventStub.new(starting_date + k)
-      end
-    end
-
-    it do
-      list_view_events = ListView.get_events(events: events, today: right_now, page: -2, events_per_page: 20)
-
-      list_view_events.should == ([0]*20).each_with_index.map do |item, k|
-        EventStub.new(starting_date - 40 + k)
-      end
-    end
-
-    it do
-      list_view_events = ListView.get_events(events: events, today: right_now, page: -1, events_per_page: 20)
-
-      list_view_events.should == ([0]*20).each_with_index.map do |item, k|
-        EventStub.new(starting_date - 20 + k)
-      end
-    end
-
-    it do
-      list_view_events = ListView.get_events(events: events, today: right_now, page: 0, events_per_page: 20)
-
-      list_view_events.should == ([0]*20).each_with_index.map do |item, k|
-        EventStub.new(starting_date + k)
-      end
-    end
-
-    it do
-      list_view_events = ListView.get_events(events: events, today: right_now, page: 1, events_per_page: 20)
-
-      list_view_events.should == ([0]*20).each_with_index.map do |item, k|
-        EventStub.new(starting_date + 20 + k)
-      end
-    end
-
-    it do
-      list_view_events = ListView.get_events(events: events, today: right_now, page: 2, events_per_page: 20)
-
-      list_view_events.should == ([0]*10).each_with_index.map do |item, k|
-        EventStub.new(starting_date + 40 + k)
-      end
-    end
+  describe 'leftmost_page method' do
+    it { ListView.leftmost_page(next_event: 5, events_per_page: 3).should == -2 }
+    it { ListView.leftmost_page(next_event: 7, events_per_page: 5).should == -2 }
+    it { ListView.leftmost_page(next_event: 2, events_per_page: 4).should == -1 }
+    it { ListView.leftmost_page(next_event: 5, events_per_page: 0).should == 0 }
+  end
+  
+  describe 'rightmost_page method' do
+    it { ListView.rightmost_page(next_event: 4, events: 0, events_per_page: 2).should == -3 }
+    it { ListView.rightmost_page(next_event: 4, events: 2, events_per_page: 2).should == -2 }
+    it { ListView.rightmost_page(next_event: 4, events: 3, events_per_page: 2).should == -1 }
+    it { ListView.rightmost_page(next_event: 4, events: 4, events_per_page: 2).should == -1 }
+    it { ListView.rightmost_page(next_event: 4, events: 5, events_per_page: 2).should == 0 }
+    it { ListView.rightmost_page(next_event: 4, events: 6, events_per_page: 2).should == 0 }
+    it { ListView.rightmost_page(next_event: 4, events: 8, events_per_page: 2).should == 1 }
+    it { ListView.rightmost_page(next_event: 4, events: 9, events_per_page: 2).should == 2 }
+    it { ListView.rightmost_page(next_event: 4, events: 10, events_per_page: 2).should == 2 }
   end
 
-  describe "organization events by days" do
-    let(:events) do
-      [
-        EventStub.new(right_now + (1.0/60)),
-        EventStub.new(right_now + 1),
-        EventStub.new(right_now - 1),
-        EventStub.new(right_now + 2),
-        EventStub.new(right_now - 2),
-        EventStub.new(right_now + 5),
-        EventStub.new(right_now - 5),
-        EventStub.new(right_now + 7),
-        EventStub.new(right_now - 7),
-        EventStub.new(right_now + 10),
-      ]
+  describe 'get_events_and_page_info method' do
+    it do
+      ListView.get_events_and_page_info(events: events,
+                                        page: 0,
+                                        events_per_page: 2).should == {
+        events: [fourth_and_current_event, fifth_event],
+        leftmost_page: -2,
+        rightmost_page: 1,
+      }
     end
+    it { ListView.leftmost_page(next_event: 3, events_per_page: 2).should == -2 }
+    it { ListView.rightmost_page(next_event: 3, events: 7, events_per_page: 2).should == 1 }
 
-    #correct order:
-    #events = [
-      #EventStub.new(right_now - 7),
-      #EventStub.new(right_now - 5),
-      #EventStub.new(right_now - 2),
-      #EventStub.new(right_now - 1),
-      #EventStub.new(right_now + (1.0/60)),
-      #EventStub.new(right_now + 1),
-      #EventStub.new(right_now + 2),
-      #EventStub.new(right_now + 5),
-      #EventStub.new(right_now + 7),
-      #EventStub.new(right_now + 10),
-    #]
+
 
     it do
-      ListView.organization_events_by_day(
-        events: events,
-        today: right_now,
-        page: 0,
-        events_per_page: 2,
-        date_format: "%B, %d")[:events].should == [
-        {
-          date: "Today",
-          events: [EventStub.new(right_now + (1.0/60))]
-        },
-        {
-          date: (right_now + 1).strftime("%B, %d"),
-          events: [EventStub.new(right_now + 1)]
-        },
-      ]
+      ListView.get_events_and_page_info(events: events,
+                                        page: 1,
+                                        events_per_page: 2).should == {
+        events: [sixth_event, seventh_event],
+        leftmost_page: -3,
+        rightmost_page: 0,
+      }
     end
+    it { ListView.leftmost_page(next_event: 5, events_per_page: 2).should == -3 }
+    it { ListView.rightmost_page(next_event: 5, events: 7, events_per_page: 2).should == 0 }
+
+
 
     it do
-      ListView.organization_events_by_day(
-        events: events,
-        today: right_now,
-        page: -1,
-        events_per_page: 2,
-        date_format: "%B, %d")[:events].should == [
-        {
-          date: (right_now - 2).strftime("%B, %d"),
-          events: [EventStub.new(right_now - 2)]
-        },
-        {
-          date: (right_now - 1).strftime("%B, %d"),
-          events: [EventStub.new(right_now - 1)]
-        },
-      ]
+      ListView.get_events_and_page_info(events: events,
+                                        page: -1,
+                                        events_per_page: 2).should == {
+        events: [second_event, third_event],
+        leftmost_page: -1,
+        rightmost_page: 2,
+      }
     end
-
-    #page: 0, events_per_page: 2
-    it do
-      ListView.organization_events_by_day(
-              events: events,
-              today: right_now,
-              page: 0,
-              events_per_page: 2,
-              date_format: "%B, %d")[:leftmost_page].should == -2
-    end
-
-    it do
-      ListView.organization_events_by_day(
-              events: events,
-              today: right_now,
-              page: 0,
-              events_per_page: 2,
-              date_format: "%B, %d")[:rightmost_page].should == 2
-    end
-
-    #page: 2, events_per_page: 2
-    it do
-      ListView.organization_events_by_day(
-              events: events,
-              today: right_now,
-              page: 2,
-              events_per_page: 2,
-              date_format: "%B, %d")[:leftmost_page].should == -4
-    end
-
-    it do
-      ListView.organization_events_by_day(
-              events: events,
-              today: right_now,
-              page: 2,
-              events_per_page: 2,
-              date_format: "%B, %d")[:rightmost_page].should == 0
-    end
-
-    #page: -2, events_per_page: 2
-    it do
-      ListView.organization_events_by_day(
-              events: events,
-              today: right_now,
-              page: -2,
-              events_per_page: 2,
-              date_format: "%B, %d")[:leftmost_page].should == 0
-    end
-
-    it do
-      ListView.organization_events_by_day(
-              events: events,
-              today: right_now,
-              page: -2,
-              events_per_page: 2,
-              date_format: "%B, %d")[:rightmost_page].should == 4
-    end
-
+    it { ListView.leftmost_page(next_event: 1, events_per_page: 2).should == -1 }
+    it { ListView.rightmost_page(next_event: 1, events: 7, events_per_page: 2).should == 2 }
   end
 end
