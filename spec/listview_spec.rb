@@ -1,5 +1,6 @@
-require 'spec_helper'
+require 'rspec'
 require 'date'
+require File.expand_path("../../lib/listview", __FILE__)
 
 class EventStub
   attr_accessor :date
@@ -112,8 +113,6 @@ describe ListView do
     it { ListView.leftmost_page(next_event: 3, events_per_page: 2).should == -2 }
     it { ListView.rightmost_page(next_event: 3, events: 7, events_per_page: 2).should == 1 }
 
-
-
     it do
       ListView.get_events_and_page_info(events: events,
                                         page: 1,
@@ -123,10 +122,9 @@ describe ListView do
         rightmost_page: 0,
       }
     end
+
     it { ListView.leftmost_page(next_event: 5, events_per_page: 2).should == -3 }
     it { ListView.rightmost_page(next_event: 5, events: 7, events_per_page: 2).should == 0 }
-
-
 
     it do
       ListView.get_events_and_page_info(events: events,
